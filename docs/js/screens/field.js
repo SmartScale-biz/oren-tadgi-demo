@@ -37,7 +37,7 @@
     return `<div class="app-bar"><button class="icon-btn" type="button" data-back aria-label="חזרה" style="color:#fff">${icon('arrowR')}</button><div class="grow"><div class="ab-title">תעודת משלוח</div><div class="ab-sub">${esc(o.branch)}</div></div></div>
       <div class="f-steps"><span class="on"></span><span class="on"></span><span></span></div>
       <div class="f-body"><b>2. חתימת הלקוח</b>
-        <div class="dn-paper"><div class="dn-head"><img src="assets/logo.png" alt="איקס מדיה" width="300" height="76"><div style="text-align:end"><b>תעודת משלוח</b><div class="mono">${esc(dn)}</div></div></div>
+        <div class="dn-paper"><div class="dn-head"><img src="assets/logo.png" alt="איקס מדיה" width="300" height="76"><div style="text-align:end"><b style="display:block">תעודת משלוח</b><span class="mono">${esc(dn)}</span></div></div>
           <div class="between tiny"><span>לכבוד: <b>${esc(c.legal || c.name)}</b></span><span>${X.fdate(D.today)}</span></div><div class="tiny">אתר: ${esc(o.branch)}, ${esc(o.city)}${o.docs.po ? ` · הזמנת רכש <bdi class="num">${esc(o.docs.po)}</bdi>` : ''}</div>
           <table><thead><tr><th>פריט</th><th>מידה</th><th>כמות</th></tr></thead><tbody>${o.lines.map(l => `<tr><td>${esc(l.name)}</td><td><bdi class="num">${esc(l.size || '-')}</bdi></td><td>${num(l.qty)}</td></tr>`).join('')}</tbody></table>
           <div class="tiny muted">הותקן על ידי צוות ${esc(t.name)}. הסחורה התקבלה במצב תקין.</div></div>
@@ -50,7 +50,7 @@
       <div class="f-steps"><span class="on"></span><span class="on"></span><span class="on"></span></div>
       <div class="f-body" style="text-align:center"><div class="big-ok">${icon('check')}</div><h2>התעודה נחתמה ונשלחה</h2>
         <div class="sent-steps" style="text-align:start;margin-block:.75rem" id="sentSteps">
-          <div class="sent-step on"><span class="ss-ic">${icon('check')}</span>נשלח למשרד עם ${num((picked[o.no] || [0]).length)} תמונות</div>
+          <div class="sent-step on"><span class="ss-ic">${icon('check')}</span>נשלח למשרד עם ${(picked[o.no] || [0]).length === 1 ? 'תמונה אחת' : num((picked[o.no] || [0]).length) + ' תמונות'}</div>
           <div class="sent-step on"><span class="ss-ic">${icon('check')}</span>נרשם ברווחית: תעודה ${X.mono(o.docs.deliveryNo || '')}</div>
           <div class="sent-step on"><span class="ss-ic">${icon('check')}</span>עותק חתום נשלח ללקוח במייל</div></div>
         <button class="btn btn-primary btn-block" type="button" data-back>${icon('arrowL')}לתחנה הבאה</button>
@@ -95,7 +95,7 @@
     },
     mount(root, r) {
       const t = X.team(r.q.get('team')) || X.team('noam');
-      const set = (k, v) => { const q = new URLSearchParams(r.q); q.set('team', t.id); Object.keys(k).forEach(x => { if (k[x] == null) q.delete(x); else q.set(x, k[x]); }); X.setQuery(Object.assign({}, r, { q }), 'keep', '1'); const ps = $('#phoneScroll'); if (ps) ps.scrollTop = 0; };
+      const set = (k, v) => { const q = new URLSearchParams(r.q); q.set('team', t.id); Object.keys(k).forEach(x => { if (k[x] == null) q.delete(x); else q.set(x, k[x]); }); X.setQuery(Object.assign({}, r, { q }), 'keep', '1'); const ps = $('#phoneScroll'); if (ps) ps.scrollTop = 0; const ph = $('.phone'); if (ph && ph.getBoundingClientRect().top < 0) window.scrollTo(0, Math.max(0, window.scrollY + ph.getBoundingClientRect().top - 70)); };
       $$('[data-team]', root).forEach(b => b.addEventListener('click', () => { const q = new URLSearchParams(); q.set('team', b.dataset.team); X.setQuery(Object.assign({}, r, { q }), 'team', b.dataset.team); }));
       $$('[data-back]', root).forEach(b => b.addEventListener('click', () => set({ stop: null, step: null })));
       $$('[data-arrive]', root).forEach(b => b.addEventListener('click', () => { const o = X.order(b.dataset.arrive); o.install.status = 'onsite'; X.log(o, t.name, 'הצוות הגיע לאתר'); X.save(); X.toast('נרשם: הצוות במקום'); set({}); }));

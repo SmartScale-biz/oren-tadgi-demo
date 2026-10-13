@@ -115,8 +115,14 @@
     } catch (e) { }
   })();
   let saveT = null;
-  function save() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(Object.assign({}, S, { v: D.version, day: D.today, orders: D.orders, feed: D.feed, counters: D.counters }))); } catch (e) { } }, 120); }
-  function resetAll() { try { localStorage.removeItem(KEY); } catch (e) { } const u = new URL(location.href); u.searchParams.delete('fresh'); u.searchParams.delete('tour'); u.hash = '#/'; location.replace(u.toString()); setTimeout(() => location.reload(), 30); }
+  function save() { clearTimeout(saveT); if (window.__resetting) return; saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(Object.assign({}, S, { v: D.version, day: D.today, orders: D.orders, feed: D.feed, counters: D.counters }))); } catch (e) { } }, 120); }
+  function resetAll() {
+    try { localStorage.removeItem(KEY); } catch (e) { }
+    S.tourDone = true; window.__resetting = true; clearTimeout(saveT);
+    const u = new URL(location.href); u.searchParams.delete('fresh'); u.searchParams.delete('tour'); u.hash = '#/';
+    const target = u.toString();
+    if (target.split('#')[0] === location.href.split('#')[0]) { history.replaceState(null, '', target); location.reload(); } else location.replace(target);
+  }
 
   /* ---------- גישה לנתונים ---------- */
   const order = no => D.orders.find(o => o.no === no);
@@ -347,6 +353,8 @@
     $$('[data-nav]').forEach(a => { const on = a.dataset.nav === nav || (a.dataset.nav === 'more' && TABS.indexOf(nav) < 0 && nav !== 'notfound'); a.classList.toggle('active', on); if (a.tagName === 'A') { if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); } });
     if (sc.mount) sc.mount(view, r);
     $$('.stepper .step.cur, .seg [aria-selected="true"], .chips [aria-pressed="true"]', view).forEach(el => { const p = el.parentElement; if (p && p.scrollWidth > p.clientWidth + 2) { const pr = p.getBoundingClientRect(), er = el.getBoundingClientRect(); p.scrollLeft += (er.left + er.width / 2) - (pr.left + pr.width / 2); } });
+    const side = $('.side'), act = $('.side nav a.active');
+    if (side && act) { const top = act.offsetTop, h = act.offsetHeight; if (top < side.scrollTop + 60 || top + h > side.scrollTop + side.clientHeight - 80) side.scrollTop = Math.max(0, top - side.clientHeight / 2); }
     refreshBadges();
     if (!firstRender && !r.q.has('keep')) window.scrollTo(0, 0);
     firstRender = false;
@@ -374,7 +382,7 @@
     const st = TOUR[tourStep];
     const cur = location.hash || '#/';
     if (cur.split('?')[0] !== st.hash.split('?')[0] && !(st.hash === '#/' && cur === '#/')) { endTour(); return; }
-    const target = $(st.sel); if (target) { target.classList.add('tour-hl'); if (!SHOT) target.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    const target = $(st.sel); if (target) { target.classList.add('tour-hl'); if (!SHOT) { const tall = target.getBoundingClientRect().height > window.innerHeight * 0.55; target.scrollIntoView({ block: tall ? 'start' : 'center', behavior: 'smooth' }); } }
     el.innerHTML = `<div class="tour-card" role="dialog" aria-label="סיור מודרך"><div class="t-step">שלב ${tourStep + 1} מתוך ${TOUR.length}</div><h2>${st.title}</h2><p>${st.text}</p><div class="t-actions"><button class="btn btn-primary" type="button" id="tourNext">${tourStep === TOUR.length - 1 ? 'סיימנו' : 'הבא'}</button><button class="btn btn-ghost" type="button" id="tourSkip">דלג</button><span class="tour-dots">${TOUR.map((x, i) => `<i class="${i === tourStep ? 'on' : ''}"></i>`).join('')}</span></div></div>`;
     el.classList.add('open');
     $('#tourSkip').addEventListener('click', endTour);

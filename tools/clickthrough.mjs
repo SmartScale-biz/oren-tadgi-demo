@@ -123,10 +123,10 @@ try {
         if (!found) { skipped++; continue; }
         errs = [];
         if (it.reset) {
-          const href0 = await c.ev('return location.href;');
+          await c.ev('window.__ctMark = 1; return 1;');
           await c.ev(ACT).catch(() => { });
           let okReset = false;
-          for (let i = 0; i < 60; i++) { await sleep(200); const s = await c.ev('return { href: location.href, demo: !!window.__demo, view: document.querySelector("#view") ? document.querySelector("#view").children.length : 0 };').catch(() => null); if (s && s.href !== href0 && s.demo && s.view) { okReset = true; break; } }
+          for (let i = 0; i < 60; i++) { await sleep(200); const s = await c.ev('return { mark: !!window.__ctMark, demo: !!window.__demo, view: document.querySelector("#view") ? document.querySelector("#view").children.length : 0 };').catch(() => null); if (s && !s.mark && s.demo && s.view) { okReset = true; break; } }
           if (!okReset) fail(where, 'האיפוס לא טען את האפליקציה מחדש');
           await load(hash); n++; clicks++; continue;
         }
