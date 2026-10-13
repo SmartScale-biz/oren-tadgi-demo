@@ -1,0 +1,8 @@
+_screens/
+_מקור/
+_ct.log
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+הוראות-הדגמה.md
